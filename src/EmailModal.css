@@ -1,0 +1,128 @@
+.email-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.email-modal-content {
+  background: #25262c;
+  border-radius: 8px;
+  width: 500px;
+  max-width: 90%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  color: #f0f0f0;
+}
+
+.email-modal-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid #383a42;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.email-modal-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.email-modal-body {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #f0f0f0;
+}
+
+.form-group .required {
+  color: #e91e63;
+  margin-left: 4px;
+}
+
+.form-control {
+  background: #1e1e24;
+  border: 1px solid #383a42;
+  color: #f0f0f0;
+  padding: 10px 12px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  width: 100%;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #2ab7ff;
+}
+
+textarea.form-control {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.attachment-info {
+  background: #1e1e24;
+  border: 1px solid #383a42;
+  border-radius: 4px;
+  padding: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.attachment-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.attachment-size {
+  color: #9aa0a6;
+}
+
+.email-modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #383a42;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.btn-danger {
+  background-color: #ff0040;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.btn-danger:hover {
+  opacity: 0.9;
+}
+
+.btn-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
