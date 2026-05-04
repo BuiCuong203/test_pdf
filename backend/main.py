@@ -2,6 +2,10 @@ import os
 import uuid
 import asyncio
 import time
+import base64
+import io
+from fastapi.responses import Response
+from PIL import Image
 from typing import List
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -209,6 +213,32 @@ async def send_email(export_id: str, request: EmailRequest, background_tasks: Ba
     except Exception as e:
         print(f"Error sending email: {e}")
         raise HTTPException(status_code=500, detail="Failed to send email")
+
+@app.post("/api/dashboard/download-pdf")
+async def download_pdf(request: ExportRequest):
+    try:
+        base64_str = request.imageDataUrl
+        if "base64," in base64_str:
+            base64_str = base64_str.split("base64,")[1]
+
+        # Giải mã và chuyển đổi sang PDF
+        image_bytes = base64.b64decode(base64_str)
+        image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+
+        pdf_buffer = io.BytesIO()
+        image.save(pdf_buffer, format="PDF")
+        pdf_content = pdf_buffer.getvalue()
+
+        # Trả về file PDF với headers phù hợp để browser nhận diện tải xuống
+        return Response(
+            content=pdf_content,
+            media_type="application/pdf",
+            headers={
+                "Content-Disposition": "attachment; filename=dashboard_report.pdf"
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     import uvicorn

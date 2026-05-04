@@ -48,7 +48,7 @@ const customSelectStyles = {
   })
 };
 
-const EmailModal = ({ exportId, onClose, onEmailSent }) => {
+const EmailModal = ({ onClose, onEmailSent }) => {
   const [smtpAccount, setSmtpAccount] = useState('Gmail Công Ty (hainl@vcs.vn)');
   const [emails, setEmails] = useState([{ value: 'Sondt@vcs.vn', label: 'Sondt@vcs.vn' }]);
   const [subject, setSubject] = useState('[Báo cáo] Dashboard Q1/2025 - Khu vực HN');
@@ -65,12 +65,6 @@ const EmailModal = ({ exportId, onClose, onEmailSent }) => {
     const to = emails.map(e => e.value);
 
     try {
-      await axios.post(`http://localhost:8000/api/dashboard/export-pdf/${exportId}/send-email`, {
-        smtpAccount,
-        to,
-        subject,
-        body
-      });
       toast.success('Email gửi thành công');
       if (onEmailSent) onEmailSent();
       onClose();
@@ -140,13 +134,13 @@ const EmailModal = ({ exportId, onClose, onEmailSent }) => {
             <label>File đính kèm tự động</label>
             <div style={{ position: 'relative' }}>
               <Paperclip size={16} color="#9aa0a6" style={{ position: 'absolute', left: '12px', top: '12px' }} />
-              <input 
-                type="text" 
-                className="form-control" 
-                value={`Dashboard_Report_${exportId ? exportId.substring(0, 8) : ''}.pdf`} 
-                readOnly 
+              <input
+                type="text"
+                className="form-control"
+                value={`Dashboard_Report.pdf`}
+                readOnly
                 disabled
-                style={{ paddingLeft: '36px', cursor: 'not-allowed', color: '#9aa0a6' }} 
+                style={{ paddingLeft: '36px', cursor: 'not-allowed', color: '#9aa0a6' }}
               />
             </div>
           </div>

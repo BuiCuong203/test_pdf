@@ -14,95 +14,69 @@ import EmailModal from './EmailModal';
 const BACKEND_URL = 'http://localhost:8000';
 
 function App() {
-  const [exporting, setExporting] = useState(false);
   const [showModal, setShowModal] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  const [isDownloading, setIsDownloading] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
-  const [exportId, setExportId] = useState(null);
-
   const dashboardRef = useRef(null);
 
-  const handleExportPDF = async () => {
+  const handlePreview = async () => {
     if (!dashboardRef.current) return;
-
     try {
-      setExporting(true);
-
-      // Capture the dashboard grid
       const dataUrl = await toPng(dashboardRef.current, {
         quality: 1,
         pixelRatio: 2,
         backgroundColor: '#1e1e24',
       });
-
-      // Send to backend
-      const response = await axios.post(`${BACKEND_URL}/api/dashboard/export-pdf`, {
-        imageDataUrl: dataUrl
-      });
-
-      const { exportId: id } = response.data;
-      setExportId(id);
-
-      // Start polling
-      const interval = setInterval(async () => {
-        try {
-          const statusRes = await axios.get(`${BACKEND_URL}/api/dashboard/export-pdf/${id}/status`);
-          if (statusRes.data.status === 'ready') {
-            clearInterval(interval);
-            setExporting(false);
-            setShowModal(true);
-          } else if (statusRes.data.status === 'failed') {
-            clearInterval(interval);
-            setExporting(false);
-            alert("Failed to generate PDF on the server.");
-          }
-        } catch (e) {
-          console.error("Polling error", e);
-        }
-      }, 2000);
-
+      setPreviewImage(dataUrl);
+      setShowModal(true);
     } catch (err) {
-      console.error('Error exporting PDF:', err);
-      setExporting(false);
-      alert("Error capturing dashboard.");
+      console.error("Capture error:", err);
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!previewImage) return;
+
+    try {
+      setIsDownloading(true);
+      const response = await axios.post(
+        `${BACKEND_URL}/api/dashboard/download-pdf`,
+        { imageDataUrl: previewImage },
+        { responseType: 'blob' } // Quan trọng: nhận dữ liệu dạng binary
+      );
+
+      // Tạo URL tạm thời cho file PDF
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'dashboard.pdf'); // Tên file tải về
+      document.body.appendChild(link);
+      link.click();
+
+      // Dọn dẹp
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      setIsDownloading(false);
+    } catch (err) {
+      console.error("Download error:", err);
+      setIsDownloading(false);
+      alert("Không thể tạo file PDF");
     }
   };
 
   const closeModal = () => {
     setShowModal(false);
-    setExportId(null);
-  };
-
-  const handleDownloadComplete = () => {
-    // Backend deletes the file after download, so we must close the preview
-    // We use a slight timeout to let the browser initiate the download first
-    setTimeout(() => {
-      closeModal();
-    }, 1000);
+    setPreviewImage(null);
   };
 
   return (
     <div className="dashboard-container">
-      <Toaster position="top-right" toastOptions={{ style: { background: '#333', color: '#fff' } }} />
       <header className="dashboard-header">
-        <div>
-          <h1>Dashboard of SOCP Department</h1>
-          <div className="subtitle">Last update 20:22 22/11/2025 • Nguyễn Văn A</div>
-        </div>
-        <div className="header-actions">
-          <button
-            className="export-btn"
-            onClick={handleExportPDF}
-            disabled={exporting}
-          >
-            {exporting ? 'Generating PDF...' : 'Export PDF'}
-          </button>
-          <button className="close-btn" aria-label="Close">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
+        <h1>SOCP Dashboard</h1>
+        <button className="export-btn" onClick={handlePreview}>
+          Export PDF
+        </button>
       </header>
 
       {/* Filter Bar */}
@@ -155,31 +129,26 @@ function App() {
         <AreaChartWidget />
       </main>
 
-      {/* PDF Preview Modal */}
-      {showModal && exportId && (
+      {showModal && (
         <div className="modal-overlay" onClick={closeModal}>
           <div className="modal-content" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h2>PDF Preview</h2>
               <div className="modal-actions">
-                <a
-                  href={`${BACKEND_URL}/api/dashboard/export-pdf/${exportId}/download`}
+                <button
                   className="btn-primary"
-                  download
-                  onClick={handleDownloadComplete}
+                  onClick={handleDownloadPDF}
+                  disabled={isDownloading}
                 >
-                  Download PDF
-                </a>
+                  {isDownloading ? 'Processing...' : 'Download'}
+                </button>
                 <button className="btn-primary" style={{ backgroundColor: '#e91e63' }} onClick={() => setShowEmailModal(true)}>Send Email</button>
                 <button className="btn-secondary" onClick={closeModal}>Close</button>
               </div>
             </div>
             <div className="modal-body">
-              <iframe
-                src={`${BACKEND_URL}/api/dashboard/export-pdf/${exportId}/preview`}
-                className="pdf-iframe"
-                title="PDF Preview"
-              />
+              {/* Hiển thị ảnh Base64 trực tiếp */}
+              <img src={previewImage} alt="Preview" className="preview-img-base64" />
             </div>
           </div>
         </div>
@@ -188,7 +157,6 @@ function App() {
       {/* Email Modal Overlay */}
       {showEmailModal && (
         <EmailModal
-          exportId={exportId}
           onClose={() => setShowEmailModal(false)}
           onEmailSent={closeModal} // Close everything once email is sent and file is deleted
         />
