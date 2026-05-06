@@ -86,6 +86,17 @@
   white-space: nowrap;
 }
 
+.filter-bar.expanded {
+  flex-wrap: wrap;
+  white-space: normal;
+}
+
+.dashboard-container.is-capturing .filter-bar {
+  flex-wrap: wrap !important;
+  white-space: normal !important;
+  overflow-x: visible !important;
+}
+
 .filter-btn {
   background: transparent;
   border: 1px solid var(--border-color);

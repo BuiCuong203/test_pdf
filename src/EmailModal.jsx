@@ -3,6 +3,7 @@ import CreatableSelect from 'react-select/creatable';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { Paperclip, X } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 import './EmailModal.css';
 
 const customSelectStyles = {
@@ -48,8 +49,8 @@ const customSelectStyles = {
   })
 };
 
-const EmailModal = ({ onClose, onEmailSent }) => {
-  const [smtpAccount, setSmtpAccount] = useState('Gmail Công Ty (hainl@vcs.vn)');
+const EmailModal = ({ onClose, onEmailSent, previewImage }) => {
+  const [smtpAccount, setSmtpAccount] = useState('hainl@vcs.vn');
   const [emails, setEmails] = useState([{ value: 'Sondt@vcs.vn', label: 'Sondt@vcs.vn' }]);
   const [subject, setSubject] = useState('[Báo cáo] Dashboard Q1/2025 - Khu vực HN');
   const [body, setBody] = useState('Gửi anh/chị,\nĐính kèm là báo cáo PDF Dashboard Quý 1 năm 2025 cập nhật mới nhất.\nTrân trọng,');
@@ -61,14 +62,54 @@ const EmailModal = ({ onClose, onEmailSent }) => {
       return;
     }
 
+    if (!previewImage) {
+      toast.error('Không tìm thấy ảnh báo cáo để đính kèm');
+      return;
+    }
+
     setSending(true);
     const to = emails.map(e => e.value);
 
     try {
+      // 1. Tạo PDF Blob từ previewImage (Base64 URL)
+      const generatePdfBlob = (dataUrl) => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.src = dataUrl;
+          img.onload = () => {
+            // Chia 2 kích thước vật lý của ảnh để ra kích thước trang PDF chuẩn (100% zoom)
+            const pdfWidth = img.width / 4;
+            const pdfHeight = img.height / 4;
+            const pdf = new jsPDF({
+              orientation: pdfWidth > pdfHeight ? 'landscape' : 'portrait',
+              unit: 'px',
+              format: [pdfWidth, pdfHeight]
+            });
+            pdf.addImage(dataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+            resolve(pdf.output('blob'));
+          };
+          img.onerror = (err) => reject(new Error('Lỗi load ảnh để tạo PDF'));
+        });
+      };
+
+      const pdfBlob = await generatePdfBlob(previewImage);
+
+      // 2. Tạo FormData
+      const formData = new FormData();
+      formData.append("smtpAccount", smtpAccount);
+      formData.append("to", to.join(","));
+      formData.append("subject", subject);
+      formData.append("body", body);
+      formData.append("pdfBlob", pdfBlob, "Dashboard_Report.pdf");
+
+      // 3. Gửi lên backend FastAPI
+      await axios.post('http://localhost:8000/api/dashboard/send-email-with-blob', formData);
+
       toast.success('Email gửi thành công');
       if (onEmailSent) onEmailSent();
       onClose();
     } catch (e) {
+      console.error("Lỗi khi gửi email:", e);
       toast.error('Lỗi khi gửi email: ' + (e.response?.data?.detail || e.message));
     } finally {
       setSending(false);
@@ -92,8 +133,9 @@ const EmailModal = ({ onClose, onEmailSent }) => {
               value={smtpAccount}
               onChange={e => setSmtpAccount(e.target.value)}
             >
-              <option>buimanhcuong2510@gmail.com</option>
-              <option>Cá nhân (test@gmail.com)</option>
+              <option value="hainl@vcs.vn">Gmail Công Ty (hainl@vcs.vn)</option>
+              <option value="buimanhcuong2510@gmail.com">buimanhcuong2510@gmail.com</option>
+              <option value="test@gmail.com">Cá nhân (test@gmail.com)</option>
             </select>
             <div style={{ fontSize: '0.8rem', color: '#2ab7ff', marginTop: '4px' }}>
               Quản lý tài khoản tại Setting Page &gt; Email Provider

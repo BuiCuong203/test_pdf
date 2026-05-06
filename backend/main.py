@@ -7,7 +7,7 @@ import io
 from fastapi.responses import Response
 from PIL import Image
 from typing import List
-from fastapi import FastAPI, BackgroundTasks, HTTPException
+from fastapi import FastAPI, BackgroundTasks, HTTPException, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -239,6 +239,42 @@ async def download_pdf(request: ExportRequest):
         )
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/dashboard/send-email-with-blob")
+async def send_email_with_blob(
+    smtpAccount: str = Form(...),
+    to: str = Form(...),
+    subject: str = Form(...),
+    body: str = Form(...),
+    pdfBlob: UploadFile = File(...)
+):
+    try:
+        # Đọc dữ liệu nhị phân từ file PDF upload (blob)
+        pdf_data = await pdfBlob.read()
+        
+        message = EmailMessage()
+        message["From"] = smtpAccount
+        # Xử lý chuỗi các email ngăn cách bằng dấu phẩy
+        to_list = [email.strip() for email in to.split(",") if email.strip()]
+        message["To"] = ", ".join(to_list)
+        message["Subject"] = subject
+        message.set_content(body)
+        
+        # Đính kèm PDF
+        message.add_attachment(
+            pdf_data, 
+            maintype="application", 
+            subtype="pdf", 
+            filename="document.pdf"
+        )
+        
+        # Gửi email thông qua Mailpit đang chạy ở localhost cổng 1025
+        await aiosmtplib.send(message, hostname="127.0.0.1", port=1025)
+        
+        return {"status": "success", "message": "Email sent successfully"}
+    except Exception as e:
+        print(f"Error sending email with blob: {e}")
+        raise HTTPException(status_code=500, detail="Failed to send email")
 
 if __name__ == "__main__":
     import uvicorn
