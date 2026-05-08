@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CreatableSelect from 'react-select/creatable';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -50,15 +50,32 @@ const customSelectStyles = {
 };
 
 const EmailModal = ({ onClose, onEmailSent, previewImage }) => {
-  const [smtpAccount, setSmtpAccount] = useState('hainl@vcs.vn');
+  const [providers, setProviders] = useState([]);
+  const [providerId, setProviderId] = useState('');
   const [emails, setEmails] = useState([{ value: 'Sondt@vcs.vn', label: 'Sondt@vcs.vn' }]);
   const [subject, setSubject] = useState('[Báo cáo] Dashboard Q1/2025 - Khu vực HN');
   const [body, setBody] = useState('Gửi anh/chị,\nĐính kèm là báo cáo PDF Dashboard Quý 1 năm 2025 cập nhật mới nhất.\nTrân trọng,');
   const [sending, setSending] = useState(false);
 
+  useEffect(() => {
+    axios.get('http://localhost:8000/api/email-providers')
+      .then(res => {
+        setProviders(res.data);
+        if (res.data.length > 0) {
+          setProviderId(res.data[0].id);
+        }
+      })
+      .catch(err => console.error("Lỗi tải danh sách provider:", err));
+  }, []);
+
   const handleSend = async () => {
     if (emails.length === 0) {
       toast.error('Vui lòng nhập ít nhất 1 email nhận');
+      return;
+    }
+
+    if (!providerId) {
+      toast.error('Vui lòng cấu hình và chọn Email Provider');
       return;
     }
 
@@ -96,7 +113,7 @@ const EmailModal = ({ onClose, onEmailSent, previewImage }) => {
 
       // 2. Tạo FormData
       const formData = new FormData();
-      formData.append("smtpAccount", smtpAccount);
+      formData.append("providerId", providerId);
       formData.append("to", to.join(","));
       formData.append("subject", subject);
       formData.append("body", body);
@@ -130,15 +147,19 @@ const EmailModal = ({ onClose, onEmailSent, previewImage }) => {
             <label>Gửi từ (Tài khoản SMTP của bạn)</label>
             <select
               className="form-control"
-              value={smtpAccount}
-              onChange={e => setSmtpAccount(e.target.value)}
+              value={providerId}
+              onChange={e => setProviderId(e.target.value)}
             >
-              <option value="hainl@vcs.vn">Gmail Công Ty (hainl@vcs.vn)</option>
-              <option value="buimanhcuong2510@gmail.com">buimanhcuong2510@gmail.com</option>
-              <option value="test@gmail.com">Cá nhân (test@gmail.com)</option>
+              {providers.length === 0 ? (
+                <option value="">Chưa có cấu hình nào...</option>
+              ) : (
+                providers.map(p => (
+                  <option key={p.id} value={p.id}>{p.from_name} ({p.from_address})</option>
+                ))
+              )}
             </select>
-            <div style={{ fontSize: '0.8rem', color: '#2ab7ff', marginTop: '4px' }}>
-              Quản lý tài khoản tại Setting Page &gt; Email Provider
+            <div style={{ fontSize: '0.8rem', color: '#9aa0a6', marginTop: '4px' }}>
+              (Quản lý bằng nút "Quản lý Email Provider" ở màn hình chính)
             </div>
           </div>
 

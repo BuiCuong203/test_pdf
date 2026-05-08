@@ -395,3 +395,18 @@
 .modal-body::-webkit-scrollbar-thumb:hover {
   background: #666;
 }
+
+/* Ẩn toàn bộ thanh cuộn khi đang chụp ảnh Export PDF */
+/* Ghi chú: html-to-image sử dụng SVG foreignObject không hỗ trợ render pseudo-element ::-webkit-scrollbar 
+   nên nó sẽ bị fallback về thanh cuộn gốc của hệ điều hành rất xấu.
+   Giải pháp tốt nhất cho ảnh/PDF tĩnh (không cuộn được) là ẩn thanh cuộn đi trong lúc chụp. */
+.dashboard-container.is-capturing *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.dashboard-container.is-capturing * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}

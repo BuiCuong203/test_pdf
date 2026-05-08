@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { toJpeg } from 'html-to-image';
-import { Toaster } from 'react-hot-toast';
+import toast, { Toaster } from 'react-hot-toast';
 import axios from 'axios';
 import { jsPDF } from 'jspdf';
 import './App.css';
@@ -11,6 +11,7 @@ import PieChartWidget from './components/PieChartWidget';
 import LineChartWidget from './components/LineChartWidget';
 import TableWidget from './components/TableWidget';
 import EmailModal from './EmailModal';
+import EmailProviderManager from './EmailProviderManager';
 
 const BACKEND_URL = 'http://localhost:8000';
 
@@ -19,6 +20,7 @@ function App() {
   const [previewImage, setPreviewImage] = useState(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [showProviderManager, setShowProviderManager] = useState(false);
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   const dashboardRef = useRef(null);
 
@@ -71,17 +73,18 @@ function App() {
         pdf.addImage(previewImage, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
         pdf.save('dashboard.pdf');
         setIsDownloading(false);
+        toast.success("Tải xuống PDF thành công!");
       };
 
       img.onerror = () => {
         console.error("Error loading image for PDF generation");
         setIsDownloading(false);
-        alert("Không thể tạo file PDF");
+        toast.error("Không thể tải ảnh để tạo file PDF");
       };
     } catch (err) {
       console.error("Download error:", err);
       setIsDownloading(false);
-      alert("Không thể tạo file PDF");
+      toast.error("Lỗi khi tạo file PDF");
     }
   };
 
@@ -92,11 +95,17 @@ function App() {
 
   return (
     <div className="dashboard-container" ref={dashboardRef}>
+      <Toaster position="top-right" />
       <header className="dashboard-header">
         <h1>SOCP Dashboard</h1>
-        <button className="export-btn no-capture" onClick={handlePreview}>
-          Export PDF
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button className="export-btn no-capture" style={{ backgroundColor: '#4b5563' }} onClick={() => setShowProviderManager(true)}>
+            ⚙️ Quản lý Email Provider
+          </button>
+          <button className="export-btn no-capture" onClick={handlePreview}>
+            Export PDF
+          </button>
+        </div>
       </header>
 
       {/* Filter Bar */}
@@ -193,6 +202,11 @@ function App() {
           onClose={() => setShowEmailModal(false)}
           onEmailSent={closeModal} // Close everything once email is sent and file is deleted
         />
+      )}
+
+      {/* Provider Manager Overlay */}
+      {showProviderManager && (
+        <EmailProviderManager onClose={() => setShowProviderManager(false)} />
       )}
     </div>
   );

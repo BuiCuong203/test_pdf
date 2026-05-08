@@ -1,0 +1,20 @@
+[
+    {
+        "host": "127.0.0.1",
+        "port": 1025,
+        "username": "admin",
+        "password": "123456",
+        "from_address": "sender",
+        "from_name": "sender@example.com",
+        "id": "249187b2-98d6-434e-8713-36688a57db80"
+    },
+    {
+        "host": "localhost",
+        "port": 1025,
+        "username": "testuser",
+        "password": "password123",
+        "from_address": "recipient",
+        "from_name": "recipient@example.com",
+        "id": "70e74255-5a02-4b2f-94a7-89b8590545ef"
+    }
+]

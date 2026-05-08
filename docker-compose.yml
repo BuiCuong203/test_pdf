@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    restart: unless-stopped
+    ports:
+      - "8025:8025" # Giao diện Web UI
+      - "1025:1025" # Cổng SMTP
+    environment:
+      # Đường dẫn tới file chứa danh sách tài khoản
+      - MP_SMTP_AUTH_FILE=/auth.txt
+      # Cực kỳ quan trọng: Cho phép gửi user/pass qua HTTP thường (vì ta chạy ở localhost không có chứng chỉ SSL/TLS)
+      - MP_SMTP_AUTH_ALLOW_INSECURE=true
+    volumes:
+      # Mount file auth.txt từ ngoài máy thật vào trong container
+      - ./auth.txt:/auth.txt:ro
