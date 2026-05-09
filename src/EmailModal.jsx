@@ -102,7 +102,12 @@ const EmailModal = ({ onClose, onEmailSent, previewImage }) => {
               unit: 'px',
               format: [pdfWidth, pdfHeight]
             });
-            pdf.addImage(dataUrl, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+
+            // Đổ nền cho PDF giống màu popup
+            pdf.setFillColor('#1e1e24');
+            pdf.rect(0, 0, pdfWidth, pdfHeight, 'F');
+
+            pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
             resolve(pdf.output('blob'));
           };
           img.onerror = (err) => reject(new Error('Lỗi load ảnh để tạo PDF'));

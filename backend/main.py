@@ -96,7 +96,7 @@ async def generate_pdf_task(export_id: str, image_data_url: str):
                 body {{
                     margin: 0;
                     padding: 24px;
-                    background-color: #1e1e24;
+                    background-color: transparent;
                     display: flex;
                     justify-content: center;
                 }}

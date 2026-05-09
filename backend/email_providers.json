@@ -16,5 +16,14 @@
         "from_address": "recipient",
         "from_name": "recipient@example.com",
         "id": "70e74255-5a02-4b2f-94a7-89b8590545ef"
+    },
+    {
+        "host": "localhost",
+        "port": 1025,
+        "username": "admin",
+        "password": "123456",
+        "from_address": "abc",
+        "from_name": "abc@gmail.com",
+        "id": "d542d348-3366-478d-bc33-62111377ed20"
     }
 ]

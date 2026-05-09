@@ -91,10 +91,15 @@
   white-space: normal;
 }
 
-.dashboard-container.is-capturing .filter-bar {
+.is-capturing .filter-bar {
   flex-wrap: wrap !important;
   white-space: normal !important;
   overflow-x: visible !important;
+}
+
+/* Hide no-capture elements and let layout shift to fill gaps */
+.is-capturing .no-capture {
+  display: none !important;
 }
 
 .filter-btn {
@@ -135,8 +140,8 @@
   grid-template-columns: repeat(12, 1fr);
   gap: 20px;
   padding: 24px;
-  background-color: var(--bg-dark);
-  /* Ensure background is explicit for html-to-image */
+  background-color: transparent;
+  /* Ensure background is transparent for html-to-image */
 }
 
 .widget {
@@ -357,7 +362,7 @@
   overflow-y: auto;
   /* Tạo thanh cuộn dọc khi ảnh quá dài */
   padding: 20px;
-  background: #121212;
+  background: transparent;
 }
 
 .image-scroll-container {
@@ -371,8 +376,6 @@
   /* Ảnh rộng bằng bề ngang popup */
   height: auto;
   /* Chiều cao tự động theo tỷ lệ ảnh */
-  border: 1px solid #444;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
 }
 
 .loading-text {
@@ -400,13 +403,13 @@
 /* Ghi chú: html-to-image sử dụng SVG foreignObject không hỗ trợ render pseudo-element ::-webkit-scrollbar 
    nên nó sẽ bị fallback về thanh cuộn gốc của hệ điều hành rất xấu.
    Giải pháp tốt nhất cho ảnh/PDF tĩnh (không cuộn được) là ẩn thanh cuộn đi trong lúc chụp. */
-.dashboard-container.is-capturing *::-webkit-scrollbar {
+.is-capturing *::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
 }
 
-.dashboard-container.is-capturing * {
+.is-capturing * {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
 }
